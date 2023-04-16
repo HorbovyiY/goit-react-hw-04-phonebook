@@ -1,4 +1,4 @@
-import React from "react";
+import {useState, useEffect} from "react";
 import { nanoid } from "nanoid";
 
 import { Form } from "./Form/Form";
@@ -6,46 +6,41 @@ import { Contacts } from "./Contacts/Contacts";
 import { Filter } from "./Filter/Filter";
 import { Title } from "./App.styled";
 
-export class App extends React.Component {
-  state = {
-    contacts: [],
-    filter: '',
-  }
+export const App = () => {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() { 
+  useEffect(() => { 
     const contactsBook = JSON.parse(localStorage.getItem("contacts"));
-    if (contactsBook) {this.setState({contacts: contactsBook})}
-  }
+    if (contactsBook) {setContacts(contactsBook)}
+  }, [])
+  
+  useEffect(() => { 
+    localStorage.setItem("contacts", JSON.stringify(contacts))
+  },[contacts])
 
-  componentDidUpdate(prevProps, prevState) { 
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem("contacts", JSON.stringify(this.state.contacts))
-    }
-  }
-
-  addContact = (name, number) => { 
+  const addContact = (name, number) => { 
     const contact = {
       id: nanoid(),
       name: name,
       number: number,
     }
-    const isNameInContacts = this.state.contacts.filter(item => item.name === name).length;
+    const isNameInContacts = contacts.filter(item => item.name === name).length;
 
       (isNameInContacts) ?
       alert("This name is already in contacts"):
-      this.setState((prevState) => ({ contacts: [contact, ...prevState.contacts] }))
+      setContacts(prevState => [contact, ...prevState] )
   }
 
-  deleteContact = (id) => { 
-    this.setState((prevState) => ({ contacts: prevState.contacts.filter(item => item.id !== id) }))
+  const deleteContact = (id) => { 
+    setContacts(prevState => prevState.filter(item => item.id !== id) )
   }
 
-  toFilter = (text) => { 
-    this.setState({filter: text})
+  const toFilter = (text) => { 
+    setFilter(text)
   }
 
-  render() { 
-    return(
+return(
     <div
       style={{
         height: '100vh',
@@ -57,12 +52,11 @@ export class App extends React.Component {
       }}
     >
       <Title>Phonebook</Title>  
-        <Form add={this.addContact} />
+        <Form add={addContact} />
 
       <Title>Contacts</Title>
-        <Filter text={this.state.filter} toFilter={this.toFilter} />
-        <Contacts contacts={this.state.contacts} filter={this.state.filter} del={ this.deleteContact} />
+        <Filter text={filter} toFilter={toFilter} />
+        <Contacts contacts={contacts} filter={filter} del={deleteContact} />
     </div>
   );
-  }
 };
